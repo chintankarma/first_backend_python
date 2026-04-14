@@ -11,6 +11,22 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 class AuthService:
 
     @staticmethod
+    def check_user_exists(db, email: str = None, mobile_no: str = None):
+        if not email and not mobile_no:
+            return {"success": False, "message": "Provide email or mobile_no"}
+
+        if email:
+            user = UserRepository.get_user_by_email(db, email)
+            if user:
+                return {"success": True, "exists": True, "message": "User exists with this email"}
+            return {"success": True, "exists": False, "message": "No user found with this email"}
+
+        user = UserRepository.get_user_by_mobile(db, mobile_no)
+        if user:
+            return {"success": True, "exists": True, "message": "User exists with this phone number"}
+        return {"success": True, "exists": False, "message": "No user found with this phone number"}
+
+    @staticmethod
     def login_user(db, data):
         user = UserRepository.get_user_by_email(db, data.email)
 

@@ -7,6 +7,14 @@ from app.core.security import get_current_user
 
 router = APIRouter()
 
+@router.get("/check-user")
+def check_user(
+    email: str = None,
+    mobile_no: str = None,
+    db: Session = Depends(get_db)
+):
+    return AuthService.check_user_exists(db, email=email, mobile_no=mobile_no)
+
 @router.post("/login")
 def login(data: LoginRequest, db: Session = Depends(get_db)):
     return AuthService.login_user(db, data)
