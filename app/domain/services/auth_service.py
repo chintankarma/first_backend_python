@@ -63,7 +63,7 @@ class AuthService:
         db,
         title, name, mobile_no, email, password,
         indian_citizen, gender, date_of_birth,
-        address, state, district,
+        address, state, district, country,
         profile_pic
     ):
         existing_user = UserRepository.get_user_by_email(db, email)
@@ -75,6 +75,13 @@ class AuthService:
 
         if existing_mobile:
             return {"success": False, "message": "Mobile already registered"}
+
+        if indian_citizen:
+            if not state or not district:
+                return {"success": False, "message": "State and district are required for Indian citizens"}
+        else:
+            if not country:
+                return {"success": False, "message": "Country is required for non-Indian citizens"}
 
         if profile_pic:
             filename = f"{uuid.uuid4()}_{profile_pic.filename}"
@@ -99,6 +106,7 @@ class AuthService:
                 "address": address,
                 "state": state,
                 "district": district,
+                "country": country,
                 "profile_pic": profile_pic_url
             }
         )

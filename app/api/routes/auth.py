@@ -37,8 +37,9 @@ def signup(
     gender: str = Form(...),
     date_of_birth: str = Form(...),
     address: str = Form(...),
-    state: str = Form(...),
-    district: str = Form(...),
+    state: str = Form(None),
+    district: str = Form(None),
+    country: str = Form(None),
     profile_pic: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
@@ -46,7 +47,7 @@ def signup(
         db,
         title, name, mobile_no, email, password,
         indian_citizen, gender, date_of_birth,
-        address, state, district,
+        address, state, district, country,
         profile_pic
     )
 

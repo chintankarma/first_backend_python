@@ -15,5 +15,6 @@ class User(Base):
     address = Column(String)
     state = Column(String)
     district = Column(String)
+    country = Column(String)
     profile_pic = Column(String)
     role = Column(String, default="user")

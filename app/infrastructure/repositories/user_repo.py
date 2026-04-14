@@ -29,6 +29,7 @@ class UserRepository:
             address=data["address"],
             state=data["state"],
             district=data["district"],
+            country=data.get("country"),
             profile_pic=data["profile_pic"]
         )
 
