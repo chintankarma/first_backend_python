@@ -30,16 +30,12 @@ def signup(
     mobile_no: str = Form(...),
     email: str = Form(...),
     password: str = Form(...),
-
     indian_citizen: bool = Form(...),
     gender: str = Form(...),
     date_of_birth: str = Form(...),
-
     address: str = Form(...),
     state: str = Form(...),
     district: str = Form(...),
-    pincode: str = Form(...),
-
     profile_pic: UploadFile = File(...),
 
     db: Session = Depends(get_db)
@@ -48,7 +44,7 @@ def signup(
         db,
         title, name, mobile_no, email, password,
         indian_citizen, gender, date_of_birth,
-        address, state, district, pincode,
+        address, state, district,
         profile_pic
     )
 
@@ -60,3 +56,12 @@ def update_profile(
     db: Session = Depends(get_db)
 ):
     return AuthService.update_profile(db, current_user, data)
+
+
+@router.delete("/delete/{user_id}")
+def delete_user(
+    user_id: int,
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return AuthService.delete_user(db, user_id, current_user)

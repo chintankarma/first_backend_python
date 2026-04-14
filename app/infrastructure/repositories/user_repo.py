@@ -8,6 +8,10 @@ class UserRepository:
     @staticmethod
     def get_user_by_email(db, email: str):
         return db.query(User).filter(User.email == email).first()
+    
+    @staticmethod
+    def get_user_by_mobile(db, mobile_no: str):
+        return db.query(User).filter(User.mobile_no == mobile_no).first()   
 
     @staticmethod
     def create_user(db, data):
@@ -19,34 +23,53 @@ class UserRepository:
             mobile_no=data["mobile_no"],
             email=data["email"],
             password=hash_password(data["password"]),
-
             indian_citizen=data["indian_citizen"],
             gender=data["gender"],
             date_of_birth=data["date_of_birth"],
-
             address=data["address"],
             state=data["state"],
             district=data["district"],
-            pincode=data["pincode"],
-
             profile_pic=data["profile_pic"]
         )
 
         db.add(user)
-        db.commit()
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
         db.refresh(user)
 
         return user
 
     @staticmethod
     def update_user(db, user, data):
-        user.name = data.name
-        user.address = data.address
-        user.state = data.state
-        user.district = data.district
-        user.pincode = data.pincode
+        update_data = data.dict(exclude_unset=True)
+
+        for key, value in update_data.items():
+            setattr(user, key, value)
     
-        db.commit()
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
         db.refresh(user)
     
+        return user
+    
+    @staticmethod
+    def delete_user_by_id(db, user_id: int):
+        user = db.query(User).filter(User.id == user_id).first()
+
+        if not user:
+            return None
+
+        db.delete(user)
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+
         return user

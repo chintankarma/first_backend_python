@@ -1,3 +1,5 @@
+import uuid
+
 from app.infrastructure.repositories.user_repo import UserRepository
 from app.core.security import verify_password, create_access_token
 import os
@@ -35,7 +37,6 @@ class AuthService:
                 "address": user.address,
                 "state": user.state,
                 "district": user.district,
-                "pincode": user.pincode,
                 "profile_pic": user.profile_pic
             }
         }
@@ -54,11 +55,29 @@ class AuthService:
         if existing_user:
             return {"success": False, "message": "User already exists"}
 
+        existing_mobile = UserRepository.get_user_by_mobile(db, mobile_no)
+
+        if existing_mobile:
+            return {"success": False, "message": "Mobile already registered"}
+
         # ✅ Save image
-        file_path = os.path.join(UPLOAD_DIR, profile_pic.filename)
+        filename = f"{uuid.uuid4()}_{profile_pic.filename}"
+        file_path = os.path.join(UPLOAD_DIR, filename)
 
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(profile_pic.file, buffer)
+
+        if profile_pic:
+            import uuid
+            filename = f"{uuid.uuid4()}_{profile_pic.filename}"
+            file_path = os.path.join(UPLOAD_DIR, filename)
+
+            with open(file_path, "wb") as buffer:
+                shutil.copyfileobj(profile_pic.file, buffer)
+
+            profile_pic_url = f"/uploads/{filename}"
+        else:
+            profile_pic_url = None
 
         # ✅ Save user
         user = UserRepository.create_user(
@@ -69,17 +88,13 @@ class AuthService:
                 "mobile_no": mobile_no,
                 "email": email,
                 "password": password,
-
                 "indian_citizen": indian_citizen,
                 "gender": gender,
                 "date_of_birth": date_of_birth,
-
                 "address": address,
                 "state": state,
                 "district": district,
-                "pincode": pincode,
-
-                "profile_pic": f"/uploads/{profile_pic.filename}"
+                "profile_pic": profile_pic_url
             }
         )
 
@@ -109,7 +124,6 @@ class AuthService:
                 "address": user.address,
                 "state": user.state,
                 "district": user.district,
-                "pincode": user.pincode,
                 "profile_pic": user.profile_pic
             }
         }
@@ -117,27 +131,29 @@ class AuthService:
     @staticmethod
     def update_profile(db, email, data):
         user = UserRepository.get_user_by_email(db, email)
+    
+        if not user:
+            return {"success": False, "message": "User not found"}
+    
+        UserRepository.update_user(db, user, data)
+    
+        return {"success": True, "message": "Profile updated"}
+    
+    @staticmethod
+    def delete_user(db, user_id: int, current_email: str):
+        user = UserRepository.get_user_by_id(db, user_id)
 
         if not user:
             return {"success": False, "message": "User not found"}
 
-        updated_user = UserRepository.update_user(db, user, data)
-
-        return {
-            "success": True,
-            "message": "Profile updated successfully",
-            "data": {
-                "title": updated_user.title,
-                "name": updated_user.name,
-                "mobile_no": updated_user.mobile_no,
-                "email": updated_user.email,
-                "indian_citizen": updated_user.indian_citizen,
-                "gender": updated_user.gender,
-                "date_of_birth": updated_user.date_of_birth,
-                "address": updated_user.address,
-                "state": updated_user.state,
-                "district": updated_user.district,
-                "pincode": updated_user.pincode,
-                "profile_pic": updated_user.profile_pic
-            }
-        }
+        if user.email != current_email:
+            return {"success": False, "message": "Not authorized"}
+    
+        db.delete(user)
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+    
+        return {"success": True, "message": "Profile deleted"}
