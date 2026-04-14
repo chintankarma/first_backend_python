@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from passlib.context import CryptContext
@@ -15,7 +16,7 @@ def verify_password(plain_password: str, hashed_password: str):
 
 
 # 🔑 JWT Config
-SECRET_KEY = "mysecretkey"
+SECRET_KEY = os.environ.get("SECRET_KEY", "mysecretkey")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 

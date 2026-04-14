@@ -1,14 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile, File, Form
 from sqlalchemy.orm import Session
-from app.schemas.user_schema import LoginRequest
+from app.schemas.user_schema import LoginRequest, UpdateProfileRequest
 from app.domain.services.auth_service import AuthService
 from app.core.deps import get_db
 from app.core.security import get_current_user
-from fastapi import APIRouter, Depends, UploadFile, File, Form
-from sqlalchemy.orm import Session
-from app.domain.services.auth_service import AuthService
-from app.core.deps import get_db
-from app.schemas.user_schema import UpdateProfileRequest
 
 router = APIRouter()
 
@@ -37,7 +32,6 @@ def signup(
     state: str = Form(...),
     district: str = Form(...),
     profile_pic: UploadFile = File(...),
-
     db: Session = Depends(get_db)
 ):
     return AuthService.signup_user(
@@ -48,7 +42,6 @@ def signup(
         profile_pic
     )
 
-
 @router.put("/update-profile")
 def update_profile(
     data: UpdateProfileRequest,
@@ -56,7 +49,6 @@ def update_profile(
     db: Session = Depends(get_db)
 ):
     return AuthService.update_profile(db, current_user, data)
-
 
 @router.delete("/delete/{user_id}")
 def delete_user(

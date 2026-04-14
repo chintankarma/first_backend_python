@@ -1,11 +1,12 @@
 import uuid
-
-from app.infrastructure.repositories.user_repo import UserRepository
-from app.core.security import verify_password, create_access_token
 import os
 import shutil
 
+from app.infrastructure.repositories.user_repo import UserRepository
+from app.core.security import verify_password, create_access_token
+
 UPLOAD_DIR = "uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 class AuthService:
 
@@ -26,8 +27,8 @@ class AuthService:
             "message": "Login successful",
             "access_token": token,
             "token_type": "bearer",
-            "user": { 
-                "id": user.id, 
+            "user": {
+                "id": user.id,
                 "email": user.email,
                 "name": user.name,
                 "mobile_no": user.mobile_no,
@@ -40,14 +41,13 @@ class AuthService:
                 "profile_pic": user.profile_pic
             }
         }
-    
 
     @staticmethod
     def signup_user(
         db,
         title, name, mobile_no, email, password,
         indian_citizen, gender, date_of_birth,
-        address, state, district, pincode,
+        address, state, district,
         profile_pic
     ):
         existing_user = UserRepository.get_user_by_email(db, email)
@@ -60,26 +60,15 @@ class AuthService:
         if existing_mobile:
             return {"success": False, "message": "Mobile already registered"}
 
-        # ✅ Save image
-        filename = f"{uuid.uuid4()}_{profile_pic.filename}"
-        file_path = os.path.join(UPLOAD_DIR, filename)
-
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(profile_pic.file, buffer)
-
         if profile_pic:
-            import uuid
             filename = f"{uuid.uuid4()}_{profile_pic.filename}"
             file_path = os.path.join(UPLOAD_DIR, filename)
-
             with open(file_path, "wb") as buffer:
                 shutil.copyfileobj(profile_pic.file, buffer)
-
             profile_pic_url = f"/uploads/{filename}"
         else:
             profile_pic_url = None
 
-        # ✅ Save user
         user = UserRepository.create_user(
             db,
             {
@@ -106,10 +95,10 @@ class AuthService:
 
     @staticmethod
     def get_profile(db, email):
-        user = UserRepository.get_user_by_email(db, email)  
+        user = UserRepository.get_user_by_email(db, email)
 
         if not user:
-            return {"success": False, "message": "User not found"}  
+            return {"success": False, "message": "User not found"}
 
         return {
             "success": True,
@@ -127,18 +116,18 @@ class AuthService:
                 "profile_pic": user.profile_pic
             }
         }
-    
+
     @staticmethod
     def update_profile(db, email, data):
         user = UserRepository.get_user_by_email(db, email)
-    
+
         if not user:
             return {"success": False, "message": "User not found"}
-    
+
         UserRepository.update_user(db, user, data)
-    
+
         return {"success": True, "message": "Profile updated"}
-    
+
     @staticmethod
     def delete_user(db, user_id: int, current_email: str):
         user = UserRepository.get_user_by_id(db, user_id)
@@ -148,12 +137,12 @@ class AuthService:
 
         if user.email != current_email:
             return {"success": False, "message": "Not authorized"}
-    
+
         db.delete(user)
         try:
             db.commit()
         except Exception:
             db.rollback()
             raise
-    
+
         return {"success": True, "message": "Profile deleted"}

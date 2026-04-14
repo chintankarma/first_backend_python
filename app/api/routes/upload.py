@@ -5,6 +5,7 @@ import os
 router = APIRouter()
 
 UPLOAD_DIR = "uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/profile-pic")
 def upload_profile_pic(file: UploadFile = File(...)):

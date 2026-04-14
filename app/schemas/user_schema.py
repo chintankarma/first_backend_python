@@ -24,7 +24,7 @@ class UpdateProfileRequest(BaseModel):
     name: Optional[str] = None
     mobile_no: Optional[str] = None
     email: Optional[EmailStr] = None
-    indian_citizen: Optional[str] = None
+    indian_citizen: Optional[bool] = None
     gender: Optional[str] = None
     date_of_birth: Optional[str] = None
     address: Optional[str] = None
